@@ -24,6 +24,7 @@ export default function FinancialAssistance(props) {
             saveAndExit={props.saveAndExit}
             submitEnrollment={props.submitEnrollment}
             goToDocuments={props.goToDocuments}
+            onGoToProfile={props.onGoToProfile}
           />
         </div>
       )}
