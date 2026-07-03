@@ -8,9 +8,8 @@ export default function FinancialAssistance(props) {
     <div>
       <Affordability
         state={props.state}
-        patch={props.patch}
-        runCalcCost={props.runCalcCost}
         selectProgram={props.selectProgram}
+        onGoToDashboard={props.onGoToDashboard}
       />
 
       {props.state.selectedProgram && (

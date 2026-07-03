@@ -5,7 +5,6 @@ import { useAffordCare } from "../lib/useAffordCare";
 import Nav from "./Nav";
 import SummaryBar from "./SummaryBar";
 import Landing from "./Landing";
-import Signup from "./Signup";
 import Dashboard from "./sections/Dashboard";
 import FinancialAssistance from "./sections/FinancialAssistance";
 import Documents from "./sections/Documents";
@@ -33,8 +32,6 @@ export default function AffordCareApp() {
   useEffect(() => {
     if (state.stage === "landing") {
       document.title = "AffordCare";
-    } else if (state.stage === "signup") {
-      document.title = "Create Account — AffordCare";
     } else {
       document.title = `${PAGE_TITLES[state.stage]} — AffordCare`;
     }
@@ -53,17 +50,7 @@ export default function AffordCareApp() {
   }, [state.stage]);
 
   if (state.stage === "landing") {
-    return <Landing onGetStarted={() => ac.goToStage("signup")} />;
-  }
-
-  if (state.stage === "signup") {
-    return (
-      <Signup
-        onCreateAccount={ac.createAccount}
-        onContinue={() => ac.goToStage("dashboard")}
-        onCancel={() => ac.goToStage("landing")}
-      />
-    );
+    return <Landing onCreateAccount={ac.createAccount} onContinue={() => ac.goToStage("dashboard")} />;
   }
 
   return (
@@ -112,8 +99,8 @@ export default function AffordCareApp() {
         {state.stage === "dashboard" && (
           <Dashboard
             state={state}
-            nextAction={ac.nextAction}
-            onNavigate={ac.goToStage}
+            patch={ac.patch}
+            runCalcCost={ac.runCalcCost}
             onEditInfo={() =>
               ac.patch({
                 stage: "financial-assistance",
@@ -127,9 +114,7 @@ export default function AffordCareApp() {
         {state.stage === "financial-assistance" && (
           <FinancialAssistance
             state={state}
-            patch={ac.patch}
             patchNested={ac.patchNested}
-            runCalcCost={ac.runCalcCost}
             selectProgram={ac.selectProgram}
             wizardBack={ac.wizardBack}
             wizardNext={ac.wizardNext}
@@ -137,6 +122,7 @@ export default function AffordCareApp() {
             saveAndExit={ac.saveAndExit}
             submitEnrollment={ac.submitEnrollment}
             goToDocuments={ac.goToDocuments}
+            onGoToDashboard={() => ac.goToStage("dashboard")}
           />
         )}
 
