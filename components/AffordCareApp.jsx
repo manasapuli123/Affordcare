@@ -9,7 +9,7 @@ import Landing from "./Landing";
 import Dashboard from "./sections/Dashboard";
 import Profile from "./Profile";
 import FinancialAssistance from "./sections/FinancialAssistance";
-import Documents from "./sections/Documents";
+import Enrollment from "./sections/Enrollment";
 import TrackStatus from "./sections/TrackStatus";
 import Notifications from "./sections/Notifications";
 
@@ -17,7 +17,7 @@ const PAGE_TITLES = {
   profile: "Patient Profile",
   dashboard: "Dashboard",
   "financial-assistance": "Financial Assistance",
-  documents: "Documents",
+  enrollment: "Enrollment",
   track: "Application status",
   notifications: "Notifications",
 };
@@ -99,7 +99,9 @@ export default function AffordCareApp() {
           </div>
         )}
 
-        <NextStepBanner nextAction={ac.nextAction} currentStage={state.stage} onNavigate={ac.goToStage} />
+        {state.stage === "dashboard" && (
+          <NextStepBanner nextAction={ac.nextAction} currentStage={state.stage} onNavigate={ac.goToStage} />
+        )}
 
         {state.stage === "profile" && <Profile state={state} patchNested={ac.patchNested} />}
 
@@ -110,22 +112,21 @@ export default function AffordCareApp() {
         {state.stage === "financial-assistance" && (
           <FinancialAssistance
             state={state}
-            patchNested={ac.patchNested}
             selectProgram={ac.selectProgram}
+            onGoToDashboard={() => ac.goToStage("dashboard")}
+            onGoToEnrollment={() => ac.goToStage("enrollment")}
+          />
+        )}
+
+        {state.stage === "enrollment" && (
+          <Enrollment
+            state={state}
+            patchNested={ac.patchNested}
             wizardBack={ac.wizardBack}
             wizardNext={ac.wizardNext}
             wizardGoto={ac.wizardGoto}
             saveAndExit={ac.saveAndExit}
             submitEnrollment={ac.submitEnrollment}
-            goToDocuments={ac.goToDocuments}
-            onGoToDashboard={() => ac.goToStage("dashboard")}
-            onGoToProfile={() => ac.goToStage("profile")}
-          />
-        )}
-
-        {state.stage === "documents" && (
-          <Documents
-            state={state}
             uploadDoc={ac.uploadDoc}
             removeDoc={ac.removeDoc}
             allDocsUploaded={ac.allDocsUploaded}
