@@ -15,10 +15,9 @@ function StatusBadge({ children, tone }) {
   );
 }
 
-export default function Dashboard({ state, nextAction, onNavigate }) {
+export default function Dashboard({ state, nextAction, onNavigate, onEditInfo }) {
   const med = MEDS.find((m) => m.id === state.medId);
   const insurer = INSURERS.find((i) => i.id === state.insurerId);
-  const displayName = state.personal.name ? state.personal.name.split(" ")[0] : "there";
 
   let tone = "gray";
   let statusLabel = "Not started";
@@ -44,8 +43,20 @@ export default function Dashboard({ state, nextAction, onNavigate }) {
   return (
     <div>
       <div className="bg-white rounded-xl border border-border p-5 mb-3">
-        <h2 className="font-display text-lg mb-1">Welcome back, {displayName}</h2>
-        <p className="text-sm text-muted">{statusText}</p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="font-display text-lg mb-1">Welcome</h2>
+            <p className="text-sm text-muted">{statusText}</p>
+          </div>
+          {state.personal.name && (
+            <button
+              onClick={onEditInfo}
+              className="text-sm text-harbor-dark min-h-[44px] px-2 whitespace-nowrap"
+            >
+              Edit my information
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 mb-3">

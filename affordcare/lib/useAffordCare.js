@@ -7,10 +7,12 @@ const STORAGE_KEY = "affordcare_state_v1";
 
 function initialState() {
   return {
-    stage: "dashboard",
+    stage: "landing",
+    account: { name: "", email: "" },
     medId: MEDS[0].id,
     insurerId: INSURERS[0].id,
     zip: "",
+    incomeRange: "",
     zipError: false,
     costResult: null,
     programs: [],
@@ -80,6 +82,14 @@ export function useAffordCare() {
     []
   );
 
+  const createAccount = useCallback(({ name, email }) => {
+    setState((s) => ({
+      ...s,
+      account: { name, email },
+      personal: { ...s.personal, name: s.personal.name || name, email: s.personal.email || email },
+    }));
+  }, []);
+
   const showToast = useCallback((message, ms = 3200) => {
     patch({ toast: message });
     if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -94,21 +104,17 @@ export function useAffordCare() {
       return;
     }
     const costResult = computeCost({ medId: state.medId, insurerId: state.insurerId, zip: state.zip });
-    const programs = buildPrograms(costResult.insurer, costResult.monthlyOOP);
+    const programs = buildPrograms(costResult.insurer, costResult.monthlyOOP, state.incomeRange);
     patch({ zipError: false, costResult, programs });
-  }, [state.zip, state.medId, state.insurerId, patch]);
+  }, [state.zip, state.medId, state.insurerId, state.incomeRange, patch]);
 
-  const selectProgram = useCallback(
-    (programId) => patch({ selectedProgram: programId }),
-    [patch]
-  );
-
-  const continueToEnroll = useCallback(() => {
+  const selectProgram = useCallback((programId) => {
     setState((s) => ({
       ...s,
+      selectedProgram: programId,
       insuranceInfo: { ...s.insuranceInfo, insurerId: s.insurerId },
       personal: { ...s.personal, zip: s.personal.zip || s.zip },
-      stage: "enroll",
+      income: { ...s.income, incomeRange: s.income.incomeRange || s.incomeRange },
     }));
   }, []);
 
@@ -227,19 +233,25 @@ export function useAffordCare() {
 
   const savingsFound = state.costResult && state.selectedProgram ? state.costResult.monthlyOOP * 0.85 : 0;
 
-  const allDocsUploaded = Object.values(state.docs).every((d) => d.uploaded);
+  const isUninsuredPatient =
+    INSURERS.find((i) => i.id === state.insuranceInfo.insurerId)?.category === "uninsured";
+
+  const allDocsUploaded = Object.entries(state.docs).every(([key, d]) => {
+    if (key === "insurance" && isUninsuredPatient) return true;
+    return d.uploaded;
+  });
 
   const nextAction = (() => {
     if (!state.costResult)
       return {
-        stage: "affordability",
+        stage: "financial-assistance",
         label: "Estimate your medication cost",
         desc: "Tell us your medication, insurance provider, and ZIP code so we can show what you can expect to pay.",
         icon: "Calculator",
       };
     if (!state.selectedProgram)
       return {
-        stage: "affordability",
+        stage: "financial-assistance",
         label: "Review assistance programs",
         desc: "We matched programs to your coverage that could lower your monthly cost.",
         icon: "Search",
@@ -247,13 +259,13 @@ export function useAffordCare() {
     if (!state.enrollment.submitted) {
       if (state.personal.name)
         return {
-          stage: "enroll",
+          stage: "financial-assistance",
           label: `Resume your enrollment (step ${state.wizardStep} of 5)`,
           desc: "Pick up right where you left off.",
           icon: "ClipboardList",
         };
       return {
-        stage: "enroll",
+        stage: "financial-assistance",
         label: "Start your enrollment",
         desc: "A short 5-step form connects you to your selected program.",
         icon: "ClipboardList",
@@ -285,10 +297,10 @@ export function useAffordCare() {
     state,
     patch,
     patchNested,
+    createAccount,
     goToStage,
     runCalcCost,
     selectProgram,
-    continueToEnroll,
     wizardBack,
     wizardNext,
     wizardGoto,

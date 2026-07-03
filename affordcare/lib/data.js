@@ -39,12 +39,10 @@ export const REGION_TABLE = {
 
 export const NAV_STAGES = [
   { id: "dashboard", label: "Dashboard", icon: "Home" },
-  { id: "affordability", label: "Affordability", icon: "Calculator" },
-  { id: "enroll", label: "Enrollment", icon: "ClipboardList" },
+  { id: "financial-assistance", label: "Financial Assistance", icon: "HeartHandshake" },
   { id: "documents", label: "Documents", icon: "UploadCloud" },
   { id: "track", label: "Application status", icon: "ListChecks" },
   { id: "notifications", label: "Notifications", icon: "Bell" },
-  { id: "profile", label: "Profile", icon: "User" },
 ];
 
 export const TRACK_STAGES = [
@@ -91,10 +89,18 @@ export function calcCost({ medId, insurerId, zip }) {
   };
 }
 
-export function buildPrograms(insurer, oop) {
+function incomeBracket(incomeRange) {
+  if (!incomeRange) return "unknown";
+  if (incomeRange === "u25" || incomeRange === "25-50" || incomeRange === "50-75") return "low";
+  if (incomeRange === "75-100") return "mid";
+  return "high"; // o100
+}
+
+export function buildPrograms(insurer, oop, incomeRange) {
   const commercial = insurer.category === "commercial";
   const federal = insurer.category === "medicare" || insurer.category === "medicaid";
   const uninsured = insurer.category === "uninsured";
+  const bracket = incomeBracket(incomeRange);
 
   const copay = {
     id: "copay_card",
@@ -118,42 +124,107 @@ export function buildPrograms(insurer, oop) {
     )} per year.`,
   };
 
+  let papEligibility;
+  if (uninsured) {
+    if (bracket === "unknown")
+      papEligibility = {
+        status: "eligible",
+        label: "Eligible",
+        reason: "Uninsured patients typically qualify based on household income.",
+      };
+    else if (bracket === "low")
+      papEligibility = {
+        status: "eligible",
+        label: "Eligible",
+        reason: "You're uninsured and your reported income is within typical program limits.",
+      };
+    else if (bracket === "mid")
+      papEligibility = {
+        status: "likely",
+        label: "May qualify",
+        reason: "You're uninsured, but some programs cap income lower than your reported range.",
+      };
+    else
+      papEligibility = {
+        status: "ineligible",
+        label: "Not eligible",
+        reason: "Your reported household income is above the typical limit for this program, even while uninsured.",
+      };
+  } else {
+    if (bracket === "unknown")
+      papEligibility = {
+        status: "likely",
+        label: "May qualify",
+        reason: "Often available to insured patients too if household income falls within program limits.",
+      };
+    else if (bracket === "low")
+      papEligibility = {
+        status: "likely",
+        label: "May qualify",
+        reason: "Some programs assist insured patients at your income level, though most prioritize the uninsured.",
+      };
+    else
+      papEligibility = {
+        status: "ineligible",
+        label: "Not eligible",
+        reason: "With insurance and this household income, you're unlikely to meet program limits.",
+      };
+  }
   const pap = {
     id: "pap",
     name: "Patient assistance program (PAP)",
     icon: "Gift",
     color: "plum",
-    eligibility: uninsured
-      ? {
-          status: "eligible",
-          label: "Eligible",
-          reason: "Uninsured patients typically qualify based on household income.",
-        }
-      : {
-          status: "likely",
-          label: "May qualify",
-          reason: "Often available to insured patients too if household income falls within program limits.",
-        },
+    eligibility: papEligibility,
     benefits: "Provides your medication at no cost directly from the manufacturer if your application is approved.",
   };
 
+  let foundationEligibility;
+  if (federal) {
+    if (bracket === "unknown")
+      foundationEligibility = {
+        status: "eligible",
+        label: "Eligible",
+        reason: "Independent charities can help Medicare and Medicaid patients where manufacturer cards cannot be used.",
+      };
+    else if (bracket === "low" || bracket === "mid")
+      foundationEligibility = {
+        status: "eligible",
+        label: "Eligible",
+        reason: "You're on Medicare or Medicaid and your reported income is within typical grant limits.",
+      };
+    else
+      foundationEligibility = {
+        status: "likely",
+        label: "May qualify",
+        reason: "You're on Medicare or Medicaid; some foundations set higher income limits than others.",
+      };
+  } else {
+    if (bracket === "unknown")
+      foundationEligibility = {
+        status: "likely",
+        label: "May qualify",
+        reason: "Open to most patients who meet income limits, subject to fund availability.",
+      };
+    else if (bracket === "low")
+      foundationEligibility = {
+        status: "likely",
+        label: "May qualify",
+        reason: "Your reported income is within range for some foundations, subject to fund availability.",
+      };
+    else
+      foundationEligibility = {
+        status: "ineligible",
+        label: "Not eligible",
+        reason: "Your reported household income is above the limit most foundations use for this coverage type.",
+      };
+  }
   const foundation = {
     id: "foundation",
     name: "Foundation assistance",
     icon: "Heart",
     color: "gold",
-    eligibility: federal
-      ? {
-          status: "eligible",
-          label: "Eligible",
-          reason:
-            "Independent charities can help Medicare and Medicaid patients where manufacturer cards cannot be used.",
-        }
-      : {
-          status: "likely",
-          label: "May qualify",
-          reason: "Open to most patients who meet income limits, subject to fund availability.",
-        },
+    eligibility: foundationEligibility,
     benefits: `Grant of up to ${fmt(4000)} per year applied toward your out-of-pocket costs.`,
   };
 

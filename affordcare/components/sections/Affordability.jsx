@@ -1,7 +1,7 @@
 "use client";
 
 import Icon from "../Icon";
-import { MEDS, INSURERS, fmt } from "../../lib/data";
+import { MEDS, INSURERS, INCOME_LABELS, fmt } from "../../lib/data";
 
 const ELIGIBILITY_TONE = {
   eligible: "bg-success-light text-success-dark",
@@ -21,7 +21,7 @@ const CATEGORY_STYLE = {
   gold: { icon: "text-gold-dark", chip: "bg-gold-light text-gold-dark", edge: "border-l-gold" },
 };
 
-export default function Affordability({ state, patch, runCalcCost, selectProgram, continueToEnroll }) {
+export default function Affordability({ state, patch, runCalcCost, selectProgram }) {
   return (
     <div>
       <form
@@ -96,6 +96,28 @@ export default function Affordability({ state, patch, runCalcCost, selectProgram
             </p>
           )}
 
+          <label className="block text-sm text-muted mb-1" htmlFor="incomeSel">
+            Annual household income
+          </label>
+          <select
+            id="incomeSel"
+            className="w-full mb-1 h-11 rounded-lg border border-border px-3 bg-white"
+            value={state.incomeRange}
+            aria-describedby="income-hint"
+            onChange={(e) => patch({ incomeRange: e.target.value })}
+          >
+            <option value="">Prefer not to say</option>
+            {Object.entries(INCOME_LABELS).map(([k, label]) => (
+              <option key={k} value={k}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <p id="income-hint" className="text-xs text-muted mb-3">
+            Optional, but many assistance programs are income-based -- adding this gives a more accurate
+            eligibility result below.
+          </p>
+
           <button
             type="submit"
             className="text-sm border border-harbor text-harbor rounded-lg px-4 py-2.5 min-h-[44px] hover:bg-harbor-light transition-colors"
@@ -130,7 +152,12 @@ export default function Affordability({ state, patch, runCalcCost, selectProgram
             </div>
           </div>
 
-          <h2 className="sr-only">Assistance programs matched to your coverage</h2>
+          <h2 className="text-sm font-medium mb-3">Assistance programs matched to your coverage</h2>
+          <p className="text-xs text-muted mb-3">
+            {state.costResult.zip && state.incomeRange
+              ? "Eligibility below reflects your insurance, ZIP code, and household income."
+              : "Eligibility below reflects your insurance and ZIP code. Add your household income above for a more accurate result."}
+          </p>
           {state.programs.map((p) => {
             const selected = state.selectedProgram === p.id;
             const style = CATEGORY_STYLE[p.color] || CATEGORY_STYLE.harbor;
@@ -179,15 +206,6 @@ export default function Affordability({ state, patch, runCalcCost, selectProgram
               </div>
             );
           })}
-
-          {state.selectedProgram && (
-            <button
-              onClick={continueToEnroll}
-              className="inline-flex items-center gap-1.5 text-sm border border-harbor text-harbor rounded-lg px-4 py-2.5 min-h-[44px] hover:bg-harbor-light transition-colors"
-            >
-              Continue to enrollment <Icon name="ArrowRight" size={15} />
-            </button>
-          )}
         </>
       )}
     </div>

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Icon from "../Icon";
+import { INSURERS } from "../../lib/data";
 
 const ITEMS = [
   { key: "insurance", label: "Insurance card", icon: "CreditCard" },
@@ -86,13 +87,22 @@ function DropZone({ item, doc, onUpload, onRemove }) {
 }
 
 export default function Documents({ state, uploadDoc, removeDoc, allDocsUploaded, goToTrackFromDocuments }) {
+  const isUninsured =
+    INSURERS.find((i) => i.id === state.insuranceInfo.insurerId)?.category === "uninsured";
+  const items = isUninsured ? ITEMS.filter((it) => it.key !== "insurance") : ITEMS;
+
   return (
     <div>
       <p className="text-sm text-muted mb-3">
         Upload each document below. Every file can be added by dragging it onto its card or by using the
         Browse files button, which also works with a keyboard or screen reader.
       </p>
-      {ITEMS.map((item) => (
+      {isUninsured && (
+        <p className="text-sm text-muted bg-paper rounded-lg p-3 mb-3">
+          No insurance card needed since you're applying without active coverage.
+        </p>
+      )}
+      {items.map((item) => (
         <DropZone
           key={item.key}
           item={item}

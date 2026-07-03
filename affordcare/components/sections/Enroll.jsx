@@ -110,7 +110,7 @@ export default function Enroll({
   if (!state.selectedProgram) {
     return (
       <div className="bg-white rounded-xl border border-border p-5">
-        <p className="text-sm text-muted">Apply to a program under Affordability before enrolling.</p>
+        <p className="text-sm text-muted">Apply to a program above before enrolling.</p>
       </div>
     );
   }
@@ -135,6 +135,7 @@ export default function Enroll({
 
   const p = state.personal;
   const ins = state.insuranceInfo;
+  const isUninsured = INSURERS.find((i) => i.id === ins.insurerId)?.category === "uninsured";
   const inc = state.income;
   const con = state.consent;
   const step = state.wizardStep;
@@ -153,7 +154,9 @@ export default function Enroll({
 
   function validateStep2() {
     const e = {};
-    if (!ins.memberId.trim()) e.memberId = "Enter your insurance member ID.";
+    const insurer = INSURERS.find((i) => i.id === ins.insurerId);
+    const isUninsured = insurer?.category === "uninsured";
+    if (!isUninsured && !ins.memberId.trim()) e.memberId = "Enter your insurance member ID.";
     return e;
   }
 
@@ -371,36 +374,45 @@ export default function Enroll({
               )}
             </Field>
           </div>
-          <div className="mb-3">
-            <Field id="iMember" label="Member ID" required error={errors.memberId}>
-              {(describedBy) => (
-                <input
-                  id="iMember"
-                  ref={refs.memberId}
-                  className={inputClass(errors.memberId)}
-                  value={ins.memberId}
-                  placeholder="7841923X"
-                  required
-                  aria-required="true"
-                  aria-invalid={errors.memberId ? "true" : "false"}
-                  aria-describedby={describedBy}
-                  onChange={(e) => patchNested("insuranceInfo", { memberId: e.target.value })}
-                />
-              )}
-            </Field>
-          </div>
-          <Field id="iGroup" label="Group number" hint="Optional — check your insurance card">
-            {(describedBy) => (
-              <input
-                id="iGroup"
-                className={inputClass(false)}
-                value={ins.groupNumber}
-                placeholder="GRP-00214"
-                aria-describedby={describedBy}
-                onChange={(e) => patchNested("insuranceInfo", { groupNumber: e.target.value })}
-              />
-            )}
-          </Field>
+          {isUninsured ? (
+            <p className="text-sm text-muted bg-paper rounded-lg p-3">
+              No insurance information needed -- patient assistance programs and foundation grants are
+              built to help patients without active coverage.
+            </p>
+          ) : (
+            <>
+              <div className="mb-3">
+                <Field id="iMember" label="Member ID" required error={errors.memberId}>
+                  {(describedBy) => (
+                    <input
+                      id="iMember"
+                      ref={refs.memberId}
+                      className={inputClass(errors.memberId)}
+                      value={ins.memberId}
+                      placeholder="7841923X"
+                      required
+                      aria-required="true"
+                      aria-invalid={errors.memberId ? "true" : "false"}
+                      aria-describedby={describedBy}
+                      onChange={(e) => patchNested("insuranceInfo", { memberId: e.target.value })}
+                    />
+                  )}
+                </Field>
+              </div>
+              <Field id="iGroup" label="Group number" hint="Optional — check your insurance card">
+                {(describedBy) => (
+                  <input
+                    id="iGroup"
+                    className={inputClass(false)}
+                    value={ins.groupNumber}
+                    placeholder="GRP-00214"
+                    aria-describedby={describedBy}
+                    onChange={(e) => patchNested("insuranceInfo", { groupNumber: e.target.value })}
+                  />
+                )}
+              </Field>
+            </>
+          )}
         </div>
       )}
 
@@ -517,8 +529,11 @@ export default function Enroll({
             </button>
           </div>
           <p className="text-sm text-muted mb-3">
-            {INSURERS.find((i) => i.id === ins.insurerId)?.name || "—"} · Member ID{" "}
-            {ins.memberId || "—"} · Group {ins.groupNumber || "—"}
+            {isUninsured
+              ? `${INSURERS.find((i) => i.id === ins.insurerId)?.name || "—"} · no insurance details needed`
+              : `${INSURERS.find((i) => i.id === ins.insurerId)?.name || "—"} · Member ID ${
+                  ins.memberId || "—"
+                } · Group ${ins.groupNumber || "—"}`}
           </p>
 
           <div className="flex justify-between items-center mb-1">

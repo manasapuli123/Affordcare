@@ -4,22 +4,20 @@ import { useEffect, useRef } from "react";
 import { useAffordCare } from "../lib/useAffordCare";
 import Nav from "./Nav";
 import SummaryBar from "./SummaryBar";
+import Landing from "./Landing";
+import Signup from "./Signup";
 import Dashboard from "./sections/Dashboard";
-import Affordability from "./sections/Affordability";
-import Enroll from "./sections/Enroll";
+import FinancialAssistance from "./sections/FinancialAssistance";
 import Documents from "./sections/Documents";
 import TrackStatus from "./sections/TrackStatus";
 import Notifications from "./sections/Notifications";
-import Profile from "./sections/Profile";
 
 const PAGE_TITLES = {
   dashboard: "Dashboard",
-  affordability: "Affordability",
-  enroll: "Enrollment",
+  "financial-assistance": "Financial Assistance",
   documents: "Documents",
   track: "Application status",
   notifications: "Notifications",
-  profile: "Profile",
 };
 
 export default function AffordCareApp() {
@@ -33,7 +31,13 @@ export default function AffordCareApp() {
   // screen readers announce title changes, which is the main orientation
   // cue in a single-page app where the URL doesn't change.
   useEffect(() => {
-    document.title = `${PAGE_TITLES[state.stage]} — AffordCare`;
+    if (state.stage === "landing") {
+      document.title = "AffordCare";
+    } else if (state.stage === "signup") {
+      document.title = "Create Account — AffordCare";
+    } else {
+      document.title = `${PAGE_TITLES[state.stage]} — AffordCare`;
+    }
   }, [state.stage]);
 
   // Move keyboard/screen-reader focus to the new section's heading whenever
@@ -48,6 +52,20 @@ export default function AffordCareApp() {
     headingRef.current?.focus();
   }, [state.stage]);
 
+  if (state.stage === "landing") {
+    return <Landing onGetStarted={() => ac.goToStage("signup")} />;
+  }
+
+  if (state.stage === "signup") {
+    return (
+      <Signup
+        onCreateAccount={ac.createAccount}
+        onContinue={() => ac.goToStage("dashboard")}
+        onCancel={() => ac.goToStage("landing")}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-paper">
       <a href="#main-content" className="skip-link">
@@ -55,9 +73,9 @@ export default function AffordCareApp() {
       </a>
 
       <header className="border-b border-border bg-white">
-        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-2">
-          <span className="font-display text-lg text-harbor-dark">AffordCare</span>
-          <span className="text-xs text-muted">Patient affordability platform</span>
+        <div className="max-w-3xl mx-auto px-4 py-5">
+          <span className="font-display text-2xl text-harbor-dark block">AffordCare</span>
+          <span className="text-sm text-muted">Financial assistance made simple</span>
         </div>
       </header>
 
@@ -92,23 +110,27 @@ export default function AffordCareApp() {
         )}
 
         {state.stage === "dashboard" && (
-          <Dashboard state={state} nextAction={ac.nextAction} onNavigate={ac.goToStage} />
-        )}
-
-        {state.stage === "affordability" && (
-          <Affordability
+          <Dashboard
             state={state}
-            patch={ac.patch}
-            runCalcCost={ac.runCalcCost}
-            selectProgram={ac.selectProgram}
-            continueToEnroll={ac.continueToEnroll}
+            nextAction={ac.nextAction}
+            onNavigate={ac.goToStage}
+            onEditInfo={() =>
+              ac.patch({
+                stage: "financial-assistance",
+                wizardStep: 1,
+                wizardFurthest: Math.max(state.wizardFurthest, 1),
+              })
+            }
           />
         )}
 
-        {state.stage === "enroll" && (
-          <Enroll
+        {state.stage === "financial-assistance" && (
+          <FinancialAssistance
             state={state}
+            patch={ac.patch}
             patchNested={ac.patchNested}
+            runCalcCost={ac.runCalcCost}
+            selectProgram={ac.selectProgram}
             wizardBack={ac.wizardBack}
             wizardNext={ac.wizardNext}
             wizardGoto={ac.wizardGoto}
@@ -132,20 +154,6 @@ export default function AffordCareApp() {
 
         {state.stage === "notifications" && (
           <Notifications state={state} markNotificationRead={ac.markNotificationRead} />
-        )}
-
-        {state.stage === "profile" && (
-          <Profile
-            state={state}
-            onStart={() => ac.goToStage("affordability")}
-            onEdit={(step) => {
-              ac.patch({
-                stage: "enroll",
-                wizardStep: step,
-                wizardFurthest: Math.max(state.wizardFurthest, step),
-              });
-            }}
-          />
         )}
       </main>
     </div>
