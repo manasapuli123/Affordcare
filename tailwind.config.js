@@ -7,16 +7,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        paper: "#F3F5F4",
+        paper: "#F7F8FC",
         surface: "#FFFFFF",
-        ink: "#1B2A2E",
-        muted: "#5B6B67",
-        faint: "#6A7773",
-        border: "#E1E4E2",
+        ink: "#1E2333",
+        muted: "#5C5F6B",
+        faint: "#6B6E7A",
+        border: "#E4E4EF",
         harbor: {
-          light: "#E4F0EC",
-          DEFAULT: "#0E6B5C",
-          dark: "#0A4E44",
+          light: "#E8E7FB",
+          DEFAULT: "#4C3FC9",
+          dark: "#332A8E",
         },
         plum: {
           light: "#F3E7EF",
@@ -29,14 +29,14 @@ module.exports = {
           dark: "#1F4C7A",
         },
         gold: {
-          light: "#F5E6D8",
-          DEFAULT: "#A85A2A",
-          dark: "#7A3E1A",
+          light: "#F7E7DA",
+          DEFAULT: "#B5651D",
+          dark: "#9E5416",
         },
         success: {
-          light: "#E4F3E7",
-          DEFAULT: "#2F7D45",
-          dark: "#1F5A30",
+          light: "#E3F3E5",
+          DEFAULT: "#2E8B4F",
+          dark: "#1D5E34",
         },
         warning: {
           light: "#FBEEDB",
