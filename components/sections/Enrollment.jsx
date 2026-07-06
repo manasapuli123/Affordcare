@@ -6,8 +6,9 @@ import { INSURERS, INCOME_LABELS } from "../../lib/data";
 
 const STEPS = [
   { n: 1, label: "Your information" },
-  { n: 2, label: "Consent" },
-  { n: 3, label: "Review" },
+  { n: 2, label: "Documents" },
+  { n: 3, label: "Consent" },
+  { n: 4, label: "Review" },
 ];
 
 const DOC_ITEMS = [
@@ -200,35 +201,22 @@ export default function Enrollment({
   const inc = state.income;
   const con = state.consent;
   const step = state.wizardStep;
+  const docItems = isUninsured ? DOC_ITEMS.filter((it) => it.key !== "insurance") : DOC_ITEMS;
 
-  // Once submitted, this section shows document upload instead of the wizard.
   if (state.enrollment.submitted) {
     return (
-      <div>
-        <div className="bg-white rounded-xl border border-border p-5 mb-3">
-          <p className="text-sm text-muted m-0">
-            Enrollment submitted. Upload the documents below to keep your application moving.
-          </p>
-        </div>
-        {(isUninsured ? DOC_ITEMS.filter((it) => it.key !== "insurance") : DOC_ITEMS).map((item) => (
-          <DropZone
-            key={item.key}
-            item={item}
-            doc={state.docs[item.key]}
-            onUpload={uploadDoc}
-            onRemove={removeDoc}
-          />
-        ))}
-        {allDocsUploaded ? (
-          <button
-            onClick={goToTrackFromDocuments}
-            className="inline-flex items-center gap-1.5 text-sm border border-harbor text-harbor rounded-lg px-4 py-2.5 min-h-[44px] hover:bg-harbor-light transition-colors"
-          >
-            All documents received — view status <Icon name="ArrowRight" size={15} />
-          </button>
-        ) : (
-          <p className="text-sm text-muted">Upload all documents to keep your application moving.</p>
-        )}
+      <div className="bg-white rounded-xl border border-border p-8 text-center">
+        <Icon name="Check" className="text-success-dark mx-auto" size={32} />
+        <div className="font-medium mt-2">Enrollment submitted</div>
+        <p className="text-sm text-muted mt-1 mb-4">
+          We're reviewing your application now. You can track its progress any time.
+        </p>
+        <button
+          onClick={goToTrackFromDocuments}
+          className="inline-flex items-center gap-1.5 text-sm border border-harbor text-harbor rounded-lg px-4 py-2.5 min-h-[44px] hover:bg-harbor-light transition-colors"
+        >
+          View application status <Icon name="ArrowRight" size={15} />
+        </button>
       </div>
     );
   }
@@ -247,6 +235,12 @@ export default function Enrollment({
   }
 
   function validateStep2() {
+    const e = {};
+    if (!allDocsUploaded) e.documents = "Upload all required documents before continuing.";
+    return e;
+  }
+
+  function validateStep3() {
     const e = {};
     if (!con.share) e.share = "You must authorize sharing your information to continue.";
     if (!con.terms) e.terms = "You must agree to the program terms to continue.";
@@ -267,6 +261,7 @@ export default function Enrollment({
     let stepErrors = {};
     if (step === 1) stepErrors = validateStep1();
     else if (step === 2) stepErrors = validateStep2();
+    else if (step === 3) stepErrors = validateStep3();
 
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
@@ -284,12 +279,12 @@ export default function Enrollment({
       <ProgressNav wizardStep={step} wizardFurthest={state.wizardFurthest} wizardGoto={wizardGoto} />
 
       <span aria-live="assertive" className="sr-only">
-        {errorCount > 0 ? `${errorCount} field${errorCount > 1 ? "s" : ""} need attention.` : ""}
+        {errorCount > 0 ? `${errorCount} item${errorCount > 1 ? "s" : ""} need attention.` : ""}
       </span>
 
       {step === 1 && (
         <div className="bg-white rounded-xl border border-border p-5">
-          <h2 className="text-xs text-muted mb-3 font-normal">Step 1 of 3 — Your information</h2>
+          <h2 className="text-xs text-muted mb-3 font-normal">Step 1 of 4 — Your information</h2>
           <p className="text-xs text-muted mb-3">
             This also updates your Patient Profile, and vice versa -- they always stay in sync.
           </p>
@@ -518,8 +513,33 @@ export default function Enrollment({
       )}
 
       {step === 2 && (
+        <div>
+          <div className="bg-white rounded-xl border border-border p-5 mb-3">
+            <h2 className="text-xs text-muted mb-2 font-normal">Step 2 of 4 — Documents</h2>
+            <p className="text-sm text-muted m-0">
+              Upload each document below by dragging it onto its card or using the Browse files button.
+            </p>
+          </div>
+          {errors.documents && (
+            <p role="alert" className="text-sm text-danger bg-danger-light rounded-lg p-3 mb-3">
+              {errors.documents}
+            </p>
+          )}
+          {docItems.map((item) => (
+            <DropZone
+              key={item.key}
+              item={item}
+              doc={state.docs[item.key]}
+              onUpload={uploadDoc}
+              onRemove={removeDoc}
+            />
+          ))}
+        </div>
+      )}
+
+      {step === 3 && (
         <div className="bg-white rounded-xl border border-border p-5">
-          <h2 className="text-xs text-muted mb-3 font-normal">Step 2 of 3 — Consent</h2>
+          <h2 className="text-xs text-muted mb-3 font-normal">Step 3 of 4 — Consent</h2>
           <fieldset className="border-0 p-0 m-0">
             <legend className="sr-only">Consent to share information and program terms</legend>
             <label className="flex items-start gap-2 text-sm mb-1">
@@ -564,9 +584,9 @@ export default function Enrollment({
         </div>
       )}
 
-      {step === 3 && (
+      {step === 4 && (
         <div className="bg-white rounded-xl border border-border p-5">
-          <h2 className="text-xs text-muted mb-3 font-normal">Step 3 of 3 — Review</h2>
+          <h2 className="text-xs text-muted mb-3 font-normal">Step 4 of 4 — Review</h2>
 
           <div className="flex justify-between items-center mb-1">
             <h3 className="text-sm font-medium m-0">Your information</h3>
@@ -580,13 +600,23 @@ export default function Enrollment({
           </p>
 
           <div className="flex justify-between items-center mb-1">
-            <h3 className="text-sm font-medium m-0">Consent</h3>
+            <h3 className="text-sm font-medium m-0">Documents</h3>
             <button onClick={() => wizardGoto(2)} className="text-sm text-harbor min-h-[44px] px-2">
+              Edit<span className="sr-only"> documents</span>
+            </button>
+          </div>
+          <p className="text-sm text-muted mb-3">
+            {docItems.map((it) => state.docs[it.key]?.filename || it.label).join(" · ")}
+          </p>
+
+          <div className="flex justify-between items-center mb-1">
+            <h3 className="text-sm font-medium m-0">Consent</h3>
+            <button onClick={() => wizardGoto(3)} className="text-sm text-harbor min-h-[44px] px-2">
               Edit<span className="sr-only"> consent</span>
             </button>
           </div>
           <p className="text-sm text-muted">
-            {con.share && con.terms ? "Authorized" : "Incomplete — return to step 2"}
+            {con.share && con.terms ? "Authorized" : "Incomplete — return to step 3"}
           </p>
         </div>
       )}
