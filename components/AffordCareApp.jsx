@@ -4,7 +4,6 @@ import { useEffect, useRef } from "react";
 import { useAffordCare } from "../lib/useAffordCare";
 import Nav from "./Nav";
 import SummaryBar from "./SummaryBar";
-import NextStepBanner from "./NextStepBanner";
 import Landing from "./Landing";
 import Dashboard from "./sections/Dashboard";
 import Profile from "./Profile";
@@ -97,10 +96,6 @@ export default function AffordCareApp() {
           >
             <p className="text-sm text-harbor-dark m-0">{state.toast}</p>
           </div>
-        )}
-
-        {state.stage === "dashboard" && (
-          <NextStepBanner nextAction={ac.nextAction} currentStage={state.stage} onNavigate={ac.goToStage} />
         )}
 
         {state.stage === "profile" && <Profile state={state} patchNested={ac.patchNested} />}
