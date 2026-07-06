@@ -190,7 +190,7 @@ export default function Enrollment({
   if (!state.selectedProgram) {
     return (
       <div className="bg-white rounded-xl border border-border p-5">
-        <p className="text-sm text-muted">Apply to a program on Financial Assistance before enrolling.</p>
+        <p className="text-sm text-muted">Select a program on Financial Assistance before enrolling.</p>
       </div>
     );
   }

@@ -98,14 +98,14 @@ export default function Affordability({ state, selectProgram, onGoToDashboard })
             ) : (
               <button
                 onClick={() => selectProgram(p.id)}
-                aria-label={selected ? `Applied to ${p.name}` : `Apply to ${p.name}`}
+                aria-label={selected ? `Selected ${p.name}` : `Select ${p.name}`}
                 className={`text-sm rounded-lg px-4 py-2.5 min-h-[44px] transition-colors ${
                   selected
                     ? "border border-harbor text-harbor bg-harbor-light"
                     : "border border-border hover:bg-paper"
                 }`}
               >
-                {selected ? "Applied" : "Apply"}
+                {selected ? "Selected" : "Select"}
               </button>
             )}
           </div>

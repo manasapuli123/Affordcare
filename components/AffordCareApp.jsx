@@ -101,7 +101,12 @@ export default function AffordCareApp() {
         {state.stage === "profile" && <Profile state={state} patchNested={ac.patchNested} />}
 
         {state.stage === "dashboard" && (
-          <Dashboard state={state} patch={ac.patch} runCalcCost={ac.runCalcCost} />
+          <Dashboard
+            state={state}
+            patch={ac.patch}
+            runCalcCost={ac.runCalcCost}
+            onGoToFinancialAssistance={() => ac.goToStage("financial-assistance")}
+          />
         )}
 
         {state.stage === "financial-assistance" && (

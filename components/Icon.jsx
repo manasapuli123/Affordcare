@@ -24,6 +24,7 @@ import {
   FileText,
   Receipt,
   PenLine,
+  X,
 } from "lucide-react";
 
 const ICONS = {
@@ -50,6 +51,7 @@ const ICONS = {
   FileText,
   Receipt,
   PenLine,
+  X,
 };
 
 export default function Icon({ name, className = "", size = 18 }) {
